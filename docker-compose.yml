@@ -9,7 +9,7 @@ services:
     build: ./server
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://scanner:scanner@postgres:5432/scanner
+      DATABASE_URL: postgres://scanner:${DB_PASSWORD}@postgres:5432/scanner
     depends_on:
       postgres:
         condition: service_healthy
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: scanner
-      POSTGRES_PASSWORD: scanner
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: scanner
     volumes:
       - postgres_data:/var/lib/postgresql/data
