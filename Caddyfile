@@ -5,15 +5,18 @@
 #   scanner.yourdomain.com
 #   192.168.1.50 (with tls internal)
 
-scanner.yourdomain.com {
+# ── Production: replace with your real domain ────────────────────────────────
+# scanner.yourdomain.com {
+#     reverse_proxy scanner:80
+# }
+
+# ── Local / testing ───────────────────────────────────────────────────────────
+# Self-signed cert — accept the browser warning once per device.
+:443 {
+    tls internal
     reverse_proxy scanner:80
 }
 
-# ── Local network (no domain) ─────────────────────────────────────────────────
-# Uncomment this block and comment out the block above if you have no domain.
-# Caddy will generate a self-signed cert — accept the browser warning once.
-#
-# :443 {
-#     tls internal
-#     reverse_proxy scanner:80
-# }
+:80 {
+    reverse_proxy scanner:80
+}

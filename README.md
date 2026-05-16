@@ -88,6 +88,44 @@ Click **Export CSV** to download all entries as a `.csv` file.
 
 ---
 
+## Tailscale (this branch)
+
+This branch replaces Caddy with the [Tailscale](https://tailscale.com) container. Your app gets a private `https://workshopscanner.your-tailnet.ts.net` URL — only devices on your Tailscale network can reach it. No domain, no DNS config, no certificate management needed.
+
+### Setup
+
+**1. Create a Tailscale account** at [tailscale.com](https://tailscale.com) — free for personal use.
+
+**2. Generate an auth key**
+Go to [tailscale.com/admin/settings/keys](https://login.tailscale.com/admin/settings/keys) → Generate auth key.
+- Tick **Reusable** so the container can restart without a new key
+- Tick **Ephemeral** so the node is automatically removed if the container stops
+
+**3. Create your `.env` file on the server**
+```bash
+cp .env.example .env
+# Edit .env and fill in DB_PASSWORD and TS_AUTHKEY
+nano .env
+```
+
+**4. Start the stack**
+```bash
+docker compose up -d
+```
+
+**5. Install Tailscale on your devices**
+Download the app on your phone, laptop, and any workshop devices at [tailscale.com/download](https://tailscale.com/download). Sign in with the same account.
+
+**6. Open the app**
+```
+https://workshopscanner.<your-tailnet-name>.ts.net
+```
+Find your tailnet name at [tailscale.com/admin/machines](https://login.tailscale.com/admin/machines).
+
+> **Why this is better than a password:** The app is completely invisible to the public internet. Only devices you've approved in Tailscale can connect — no login screen needed.
+
+---
+
 ## HTTPS Setup
 
 Camera scanning requires a secure context (`https://`). The Docker setup includes [Caddy](https://caddyserver.com) which handles certificates automatically.
