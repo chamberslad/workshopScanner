@@ -8,7 +8,7 @@ import { PrintLabel } from './components/PrintLabel'
 import { NewLabelModal } from './components/NewLabelModal'
 
 export default function App() {
-  const { entries, addEntry, hasEntry, updateEntry, deleteEntry, clearAll, exportCsv } = useInventory()
+  const { entries, loading, error, addEntry, hasEntry, updateEntry, deleteEntry, clearAll, exportCsv } = useInventory()
   const [lastScan, setLastScan] = useState(null)
   const [pendingId, setPendingId] = useState(null)
   const [pendingBarcode, setPendingBarcode] = useState(null)
@@ -83,8 +83,11 @@ export default function App() {
     }
   }
 
+  if (loading) return <div className="loading">Connecting to database…</div>
+
   return (
     <div className="app">
+      {error && <div className="error-banner">{error}</div>}
       <header className="app-header">
         <div className="header-left">
           <h1>Inventory Scanner</h1>

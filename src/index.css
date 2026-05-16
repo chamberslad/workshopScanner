@@ -35,6 +35,24 @@ body {
   min-height: 100vh;
 }
 
+/* ── Loading / error ── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+.error-banner {
+  background: #3a1a1a;
+  border-bottom: 1px solid var(--danger);
+  color: #f49090;
+  font-size: 13px;
+  padding: 10px 24px;
+}
+
 /* ── Header ── */
 .app-header {
   display: flex;

@@ -1,56 +1,74 @@
 import { useState, useEffect } from 'react'
 
-const STORAGE_KEY = 'inventory_entries'
-
-const EMPTY_DETAILS = { customer: '', address: '', make: '', model: '' }
-
 export function useInventory() {
-  const [entries, setEntries] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      return stored ? JSON.parse(stored) : []
-    } catch {
-      return []
-    }
-  })
+  const [entries, setEntries] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
-  }, [entries])
+    fetch('/api/entries')
+      .then(r => r.json())
+      .then(data => { setEntries(data); setLoading(false) })
+      .catch(e => { setError(e.message); setLoading(false) })
+  }, [])
 
-  function addEntry(barcode, id = crypto.randomUUID(), extraFields = {}) {
-    const entry = {
-      id,
-      barcode,
-      ...EMPTY_DETAILS,
-      ...extraFields,
-      scannedAt: new Date().toISOString(),
-    }
+  async function addEntry(barcode, id = crypto.randomUUID(), extraFields = {}) {
+    const entry = { id, barcode, customer: '', address: '', make: '', model: '', ...extraFields, scannedAt: new Date().toISOString() }
     setEntries(prev => [entry, ...prev])
-    return entry
+    try {
+      const res = await fetch('/api/entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry),
+      })
+      const saved = await res.json()
+      setEntries(prev => prev.map(e => e.id === id ? saved : e))
+      return saved
+    } catch (e) {
+      setEntries(prev => prev.filter(e => e.id !== id))
+      setError(e.message)
+      return entry
+    }
   }
 
   function hasEntry(id) {
     return entries.some(e => e.id === id)
   }
 
-  function updateEntry(id, fields) {
-    setEntries(prev =>
-      prev.map(e => (e.id === id ? { ...e, ...fields } : e))
-    )
+  async function updateEntry(id, fields) {
+    setEntries(prev => prev.map(e => e.id === id ? { ...e, ...fields } : e))
+    try {
+      await fetch(`/api/entries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fields),
+      })
+    } catch (e) {
+      setError(e.message)
+    }
   }
 
-  function deleteEntry(id) {
+  async function deleteEntry(id) {
     setEntries(prev => prev.filter(e => e.id !== id))
+    try {
+      await fetch(`/api/entries/${id}`, { method: 'DELETE' })
+    } catch (e) {
+      setError(e.message)
+    }
   }
 
-  function clearAll() {
+  async function clearAll() {
     setEntries([])
+    try {
+      await fetch('/api/entries', { method: 'DELETE' })
+    } catch (e) {
+      setError(e.message)
+    }
   }
 
   function exportCsv() {
     const header = 'Barcode,Customer,Address,Make,Model,Scanned At'
-    const csv = (v) => `"${String(v).replace(/"/g, '""')}"`
+    const csv = v => `"${String(v).replace(/"/g, '""')}"`
     const rows = entries.map(e =>
       [e.barcode, csv(e.customer), csv(e.address), csv(e.make), csv(e.model), e.scannedAt].join(',')
     )
@@ -63,5 +81,5 @@ export function useInventory() {
     URL.revokeObjectURL(url)
   }
 
-  return { entries, addEntry, hasEntry, updateEntry, deleteEntry, clearAll, exportCsv }
+  return { entries, loading, error, addEntry, hasEntry, updateEntry, deleteEntry, clearAll, exportCsv }
 }
