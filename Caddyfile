@@ -1,0 +1,19 @@
+# Replace with your domain to get automatic HTTPS via Let's Encrypt.
+# For local network only, use tls internal (self-signed, browser will warn once).
+#
+# Examples:
+#   scanner.yourdomain.com
+#   192.168.1.50 (with tls internal)
+
+scanner.yourdomain.com {
+    reverse_proxy scanner:80
+}
+
+# ── Local network (no domain) ─────────────────────────────────────────────────
+# Uncomment this block and comment out the block above if you have no domain.
+# Caddy will generate a self-signed cert — accept the browser warning once.
+#
+# :443 {
+#     tls internal
+#     reverse_proxy scanner:80
+# }

@@ -1,0 +1,587 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-alt: #22263a;
+  --border: #2e3250;
+  --accent: #4f8ef7;
+  --accent-dim: #1e3a6e;
+  --danger: #e05c5c;
+  --text: #e8eaf0;
+  --text-dim: #7a7f9a;
+  --green: #3ecf8e;
+  --radius: 8px;
+  --font: 'Segoe UI', system-ui, sans-serif;
+  --mono: 'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.entry-count {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Buttons ── */
+.btn {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-alt);
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+/* ── Scan flash banner ── */
+.scan-indicator {
+  background: var(--accent-dim);
+  border-bottom: 2px solid var(--accent);
+  color: var(--text);
+  padding: 10px 24px;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.15s, transform 0.15s;
+  pointer-events: none;
+}
+
+.scan-indicator--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Manual scan bar ── */
+.manual-bar {
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.manual-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 600px;
+}
+
+.manual-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.manual-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 7px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.manual-input:focus {
+  border-color: var(--accent);
+}
+
+/* ── Main ── */
+.app-main {
+  flex: 1;
+  padding: 24px;
+  width: 100%;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--text-dim);
+}
+
+.empty-state p {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.empty-state .hint {
+  font-size: 13px;
+}
+
+/* ── Table ── */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.col-editable {
+  min-width: 140px;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.inventory-table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+}
+
+.inventory-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.inventory-table tbody tr:hover {
+  background: var(--surface-alt);
+}
+
+.row-new td {
+  animation: flash 0.4s ease-out;
+}
+
+@keyframes flash {
+  from { background: var(--accent-dim); }
+  to   { background: transparent; }
+}
+
+.row-found td {
+  animation: found 3s ease-out;
+}
+
+@keyframes found {
+  0%   { background: #3ecf8e40; }
+  20%  { background: #3ecf8e40; }
+  100% { background: transparent; }
+}
+
+.col-index {
+  color: var(--text-dim);
+  font-size: 12px;
+  width: 40px;
+}
+
+.col-barcode {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--green);
+  width: 220px;
+}
+
+.col-label {
+  min-width: 200px;
+}
+
+.label-text {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.label-text:hover {
+  border-color: var(--border);
+  background: var(--surface-alt);
+}
+
+.label-empty {
+  color: var(--text-dim);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.label-input {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 2px 6px;
+  width: 100%;
+  outline: none;
+}
+
+.col-time {
+  color: var(--text-dim);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.col-actions {
+  width: 40px;
+  text-align: center;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.btn-delete:hover {
+  color: var(--danger);
+  background: rgba(224, 92, 92, 0.1);
+}
+
+.btn-print {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 4px;
+  margin-right: 2px;
+}
+
+.btn-print:hover {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  padding: 24px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.modal-subtitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.modal-barcode {
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--green);
+}
+
+.modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.modal-field label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 5px;
+}
+
+.modal-field input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.modal-field input:focus {
+  border-color: var(--accent);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #3a7be0;
+  border-color: #3a7be0;
+}
+
+/* ── Camera scanner ── */
+.camera-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 24px;
+}
+
+.camera-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+}
+
+.camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.camera-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.camera-viewfinder {
+  position: relative;
+  background: #000;
+  aspect-ratio: 4 / 3;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.camera-aim {
+  position: absolute;
+  inset: 20%;
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+}
+
+.camera-select {
+  display: block;
+  width: 100%;
+  background: var(--bg);
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 10px 14px;
+  outline: none;
+}
+
+.camera-hint {
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.camera-error {
+  padding: 24px;
+  color: var(--danger);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ── Print label (screen preview) ── */
+.print-preview-modal {
+  max-width: 320px;
+}
+
+.print-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: #fff;
+  border-radius: var(--radius);
+  color: #000;
+}
+
+.print-qr {
+  display: block;
+  width: 180px !important;
+  height: 180px !important;
+}
+
+.print-details {
+  width: 100%;
+  text-align: center;
+}
+
+.print-barcode {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #000;
+  margin-bottom: 4px;
+}
+
+.print-field {
+  font-size: 11px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.print-address {
+  color: #555;
+}
+
+/* ── Print media: hide everything except the label ── */
+@media print {
+  @page {
+    size: 89mm 36mm landscape;
+    margin: 2mm;
+  }
+
+  body > * { display: none !important; }
+
+  #print-label {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 6mm;
+    width: 85mm;
+    height: 32mm;
+    padding: 2mm;
+    background: #fff;
+    color: #000;
+  }
+
+  #print-label .print-qr {
+    width: 28mm !important;
+    height: 28mm !important;
+  }
+
+  #print-label .print-details {
+    text-align: left;
+    flex: 1;
+  }
+
+  #print-label .print-barcode {
+    font-size: 9pt;
+    font-weight: 700;
+  }
+
+  #print-label .print-field {
+    font-size: 8pt;
+  }
+}
