@@ -88,6 +88,56 @@ Click **Export CSV** to download all entries as a `.csv` file.
 
 ---
 
+## Microsoft Entra SSO (this branch)
+
+This branch adds Microsoft Entra ID (Azure AD) single sign-on. Users must sign in with their Microsoft account before accessing the app. Access is managed entirely in Entra — add or remove users there, no app changes needed.
+
+### Azure portal setup (~5 minutes)
+
+1. Go to [portal.azure.com](https://portal.azure.com) → **Microsoft Entra ID** → **App registrations** → **New registration**
+
+2. Fill in:
+   - **Name:** Workshop Scanner
+   - **Supported account types:** Accounts in this organizational directory only (single tenant)
+   - **Redirect URI:** Select **Single-page application (SPA)** and enter your app URL, e.g. `https://scanner.yourdomain.com`
+
+3. Click **Register**. Copy the **Application (client) ID** and **Directory (tenant) ID** from the overview page.
+
+4. Under **Authentication**, add `http://localhost` as an additional redirect URI for local testing.
+
+5. Under **API permissions**, confirm `openid`, `profile`, and `email` are present (they are by default).
+
+### Add credentials to your `.env`
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+```
+ENTRA_TENANT_ID=your-tenant-id
+ENTRA_CLIENT_ID=your-client-id
+DB_PASSWORD=something-strong
+```
+
+### Start the stack
+
+```bash
+docker compose up -d
+```
+
+Visit your app URL — you'll be redirected to the Microsoft login page. After signing in, the app loads as normal. The signed-in user's name appears in the header and a **Sign out** button is available.
+
+### Restricting access to specific users or groups
+
+By default anyone in your Entra tenant can sign in. To restrict access:
+
+1. In the Azure portal, go to **Enterprise applications** → find **Workshop Scanner**
+2. Under **Properties**, set **Assignment required** to **Yes**
+3. Under **Users and groups**, add only the users or groups who should have access
+
+---
+
 ## HTTPS Setup
 
 Camera scanning requires a secure context (`https://`). The Docker setup includes [Caddy](https://caddyserver.com) which handles certificates automatically.

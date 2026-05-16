@@ -1,24 +1,44 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useMsal } from '@azure/msal-react'
+import { tokenRequest } from '../auth/msalConfig'
 
 export function useInventory() {
+  const { instance, accounts } = useMsal()
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const authFetch = useCallback(async (url, options = {}) => {
+    let result
+    try {
+      result = await instance.acquireTokenSilent({ ...tokenRequest, account: accounts[0] })
+    } catch {
+      await instance.acquireTokenRedirect({ ...tokenRequest, account: accounts[0] })
+      return
+    }
+    return fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+        Authorization: `Bearer ${result.idToken}`,
+      },
+    })
+  }, [instance, accounts])
+
   useEffect(() => {
-    fetch('/api/entries')
+    authFetch('/api/entries')
       .then(r => r.json())
       .then(data => { setEntries(data); setLoading(false) })
       .catch(e => { setError(e.message); setLoading(false) })
-  }, [])
+  }, [authFetch])
 
   async function addEntry(barcode, id = crypto.randomUUID(), extraFields = {}) {
     const entry = { id, barcode, customer: '', address: '', make: '', model: '', ...extraFields, scannedAt: new Date().toISOString() }
     setEntries(prev => [entry, ...prev])
     try {
-      const res = await fetch('/api/entries', {
+      const res = await authFetch('/api/entries', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(entry),
       })
       const saved = await res.json()
@@ -38,11 +58,7 @@ export function useInventory() {
   async function updateEntry(id, fields) {
     setEntries(prev => prev.map(e => e.id === id ? { ...e, ...fields } : e))
     try {
-      await fetch(`/api/entries/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(fields),
-      })
+      await authFetch(`/api/entries/${id}`, { method: 'PATCH', body: JSON.stringify(fields) })
     } catch (e) {
       setError(e.message)
     }
@@ -51,7 +67,7 @@ export function useInventory() {
   async function deleteEntry(id) {
     setEntries(prev => prev.filter(e => e.id !== id))
     try {
-      await fetch(`/api/entries/${id}`, { method: 'DELETE' })
+      await authFetch(`/api/entries/${id}`, { method: 'DELETE' })
     } catch (e) {
       setError(e.message)
     }
@@ -60,7 +76,7 @@ export function useInventory() {
   async function clearAll() {
     setEntries([])
     try {
-      await fetch('/api/entries', { method: 'DELETE' })
+      await authFetch('/api/entries', { method: 'DELETE' })
     } catch (e) {
       setError(e.message)
     }

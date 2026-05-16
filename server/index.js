@@ -1,18 +1,34 @@
 const express = require('express')
 const { pool, init } = require('./db')
+const createAuthMiddleware = require('./auth')
 
 const app = express()
 app.use(express.json())
 
+const { ENTRA_TENANT_ID, ENTRA_CLIENT_ID } = process.env
+
+if (!ENTRA_TENANT_ID || !ENTRA_CLIENT_ID) {
+  console.warn('Warning: ENTRA_TENANT_ID or ENTRA_CLIENT_ID not set — auth disabled')
+}
+
+const requireAuth = ENTRA_TENANT_ID && ENTRA_CLIENT_ID
+  ? createAuthMiddleware(ENTRA_TENANT_ID, ENTRA_CLIENT_ID)
+  : (req, res, next) => next()
+
+// Public endpoint — frontend fetches this to initialise MSAL
+app.get('/api/config', (req, res) => {
+  res.json({ tenantId: ENTRA_TENANT_ID ?? '', clientId: ENTRA_CLIENT_ID ?? '' })
+})
+
 function toClient(row) {
   return {
-    id:         row.id,
-    barcode:    row.barcode,
-    customer:   row.customer,
-    address:    row.address,
-    make:       row.make,
-    model:      row.model,
-    scannedAt:  row.scanned_at,
+    id:        row.id,
+    barcode:   row.barcode,
+    customer:  row.customer,
+    address:   row.address,
+    make:      row.make,
+    model:     row.model,
+    scannedAt: row.scanned_at,
   }
 }
 
@@ -26,13 +42,14 @@ function wrap(fn) {
   }
 }
 
-// List all entries
+// All /api/entries routes require authentication
+app.use('/api/entries', requireAuth)
+
 app.get('/api/entries', wrap(async (req, res) => {
   const { rows } = await pool.query('SELECT * FROM entries ORDER BY scanned_at DESC')
   res.json(rows.map(toClient))
 }))
 
-// Create entry
 app.post('/api/entries', wrap(async (req, res) => {
   const { id, barcode, customer, address, make, model, scannedAt } = req.body
   const { rows } = await pool.query(
@@ -43,7 +60,6 @@ app.post('/api/entries', wrap(async (req, res) => {
   res.status(201).json(toClient(rows[0]))
 }))
 
-// Update entry (partial)
 app.patch('/api/entries/:id', wrap(async (req, res) => {
   const allowed = ['barcode', 'customer', 'address', 'make', 'model']
   const updates = Object.entries(req.body).filter(([k]) => allowed.includes(k))
@@ -57,13 +73,11 @@ app.patch('/api/entries/:id', wrap(async (req, res) => {
   res.json(toClient(rows[0]))
 }))
 
-// Delete one entry
 app.delete('/api/entries/:id', wrap(async (req, res) => {
   await pool.query('DELETE FROM entries WHERE id = $1', [req.params.id])
   res.status(204).end()
 }))
 
-// Delete all entries
 app.delete('/api/entries', wrap(async (req, res) => {
   await pool.query('DELETE FROM entries')
   res.status(204).end()

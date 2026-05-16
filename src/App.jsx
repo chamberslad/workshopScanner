@@ -1,13 +1,16 @@
 import { useState, useCallback, useRef } from 'react'
+import { useMsal } from '@azure/msal-react'
 import { useInventory } from './hooks/useInventory'
 import { useBarcodeScanner } from './hooks/useBarcodeScanner'
+import { AuthGate } from './components/AuthGate'
 import { ScanFeed } from './components/ScanFeed'
 import { ScanModal } from './components/ScanModal'
 import { CameraScanner } from './components/CameraScanner'
 import { PrintLabel } from './components/PrintLabel'
 import { NewLabelModal } from './components/NewLabelModal'
 
-export default function App() {
+function AppInner() {
+  const { instance, accounts } = useMsal()
   const { entries, loading, error, addEntry, hasEntry, updateEntry, deleteEntry, clearAll, exportCsv } = useInventory()
   const [lastScan, setLastScan] = useState(null)
   const [pendingId, setPendingId] = useState(null)
@@ -92,6 +95,9 @@ export default function App() {
         <div className="header-left">
           <h1>Inventory Scanner</h1>
           <span className="entry-count">{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>
+          {accounts[0] && (
+            <span className="signed-in-user">{accounts[0].name ?? accounts[0].username}</span>
+          )}
         </div>
         <div className="header-actions">
           <button
@@ -119,6 +125,12 @@ export default function App() {
               </button>
             </>
           )}
+          <button
+            className="btn btn-secondary"
+            onClick={() => instance.logoutRedirect()}
+          >
+            Sign out
+          </button>
         </div>
       </header>
 
@@ -184,5 +196,13 @@ export default function App() {
         />
       )}
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthGate>
+      <AppInner />
+    </AuthGate>
   )
 }

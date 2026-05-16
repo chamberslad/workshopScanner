@@ -10,6 +10,8 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://scanner:${DB_PASSWORD}@postgres:5432/scanner
+      ENTRA_TENANT_ID: ${ENTRA_TENANT_ID}
+      ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID}
     depends_on:
       postgres:
         condition: service_healthy
